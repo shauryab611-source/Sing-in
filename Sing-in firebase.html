@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Signup</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: sans-serif;
+            background-color: #266210;
+            color: #E1E100;
+            margin: 0;
+        }
+
+        .box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .containr {
+            width: 350px;
+            border: 2px solid #E1E100;
+            padding: 25px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-top: 0;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            border: none;
+            padding: 8px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: #E1E100;
+            color: #266210;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: white;
+        }
+
+        .switch {
+            text-align: center;
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+
+        .switch span {
+            cursor: pointer;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        #message {
+            text-align: center;
+            font-size: 0.95rem;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <div class="containr">
+
+        <!-- LOGIN -->
+        <div id="loginBox">
+
+            <p class="title">Sign-in</p>
+
+            <div class="input-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email">
+            </div>
+
+            <div class="input-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" placeholder="Enter password">
+            </div>
+
+            <button id="loginBtn">Sign-in</button>
+
+            <p class="switch">
+                Don't have an account?
+                <span id="showSignup">Sign-up</span>
+            </p>
+
+        </div>
+
+
+        <!-- SIGNUP -->
+        <div id="signupBox" style="display: none;">
+
+            <p class="title">Sign-up</p>
+
+            <div class="input-group">
+                <label>Email:</label>
+                <input type="email" id="signupEmail" placeholder="Enter your email">
+            </div>
+
+            <div class="input-group">
+                <label>Password:</label>
+                <input type="password" id="signupPassword" placeholder="Create password">
+            </div>
+
+            <div class="input-group">
+                <label>Confirm Password:</label>
+                <input type="password" id="confirmPassword" placeholder="Confirm password">
+            </div>
+
+            <button id="signupBtn">Create Account</button>
+
+            <p class="switch">
+                Already have an account?
+                <span id="showLogin">Sign-in</span>
+            </p>
+
+        </div>
+
+        <p id="message"></p>
+
+    </div>
+
+</div>
+
+
+<!-- Firebase -->
+<script type="module">
+
+    // Firebase imports
+    import { initializeApp } from 
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+    import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword
+    } from 
+    "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+    // Your Firebase configuration
+   const firebaseConfig = {
+    apiKey: "AIzaSyAIJZwQXHak8eWTsJ0FNGYxXPkGIidNI4E",
+    authDomain: "sing-in-1a813.firebaseapp.com",
+    projectId: "sing-in-1a813",
+    storageBucket: "sing-in-1a813.firebasestorage.app",
+    messagingSenderId: "670723803255",
+    appId: "1:670723803255:web:264377cd7114ddc6c8de72"
+};
+
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+
+    // Firebase Authentication
+    const auth = getAuth(app);
+
+
+    // HTML elements
+    const loginBox = document.getElementById("loginBox");
+    const signupBox = document.getElementById("signupBox");
+
+    const showSignup = document.getElementById("showSignup");
+    const showLogin = document.getElementById("showLogin");
+
+    const loginBtn = document.getElementById("loginBtn");
+    const signupBtn = document.getElementById("signupBtn");
+
+    const message = document.getElementById("message");
+
+
+    // Show Signup
+    showSignup.addEventListener("click", function() {
+
+        loginBox.style.display = "none";
+        signupBox.style.display = "block";
+
+        message.innerText = "";
+    });
+
+
+    // Show Login
+    showLogin.addEventListener("click", function() {
+
+        signupBox.style.display = "none";
+        loginBox.style.display = "block";
+
+        message.innerText = "";
+    });
+
+
+    // SIGNUP
+    signupBtn.addEventListener("click", async function() {
+
+        const email = document.getElementById("signupEmail").value;
+        const password = document.getElementById("signupPassword").value;
+        const confirmPassword = document.getElementById("confirmPassword").value;
+
+
+        // Check empty fields
+        if (email === "" || password === "" || confirmPassword === "") {
+
+            message.innerText = "Please fill all fields.";
+            return;
+        }
+
+
+        // Check password
+        if (password !== confirmPassword) {
+
+            message.innerText = "Passwords do not match.";
+            return;
+        }
+
+
+        try {
+
+            const userCredential =
+                await createUserWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+            console.log("User created:", userCredential.user);
+
+            message.innerText = "Account created successfully!";
+
+            // Clear fields
+            document.getElementById("signupEmail").value = "";
+            document.getElementById("signupPassword").value = "";
+            document.getElementById("confirmPassword").value = "";
+
+
+            // Login page show
+            setTimeout(() => {
+
+                signupBox.style.display = "none";
+                loginBox.style.display = "block";
+
+                message.innerText = "";
+
+            }, 1500);
+
+
+        } catch (error) {
+
+            console.log(error);
+
+            if (error.code === "auth/email-already-in-use") {
+
+                message.innerText = "This email is already registered.";
+
+            } else if (error.code === "auth/weak-password") {
+
+                message.innerText = "Password should be at least 6 characters.";
+
+            } else if (error.code === "auth/invalid-email") {
+
+                message.innerText = "Invalid email address.";
+
+            } else {
+
+                message.innerText = error.message;
+            }
+        }
+
+    });
+
+
+    // LOGIN
+    loginBtn.addEventListener("click", async function() {
+
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+
+        if (email === "" || password === "") {
+
+            message.innerText = "Please enter email and password.";
+            return;
+        }
+
+
+        try {
+
+            const userCredential =
+                await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+            console.log("Logged in user:", userCredential.user);
+
+            message.innerText = "Login successful!";
+
+
+            // Yahan aap next page par bhej sakte ho
+            setTimeout(() => {
+
+                window.location.href = "C:\Users\shour\OneDrive\Desktop\websit make html\intel.html";
+
+            }, 1000);
+
+
+        } catch (error) {
+
+            console.log(error);
+
+            if (
+                error.code === "auth/invalid-credential" ||
+                error.code === "auth/wrong-password" ||
+                error.code === "auth/user-not-found"
+            ) {
+
+                message.innerText = "Email or password is incorrect.";
+
+            } else if (error.code === "auth/invalid-email") {
+
+                message.innerText = "Invalid email address.";
+
+            } else {
+
+                message.innerText = error.message;
+            }
+
+        }
+
+    });
+
+</script>
+
+</body>
+</html>
